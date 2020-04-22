@@ -90,12 +90,15 @@ class Tracker:
         self.metric.partial_fit(
             np.asarray(features), np.asarray(targets), active_targets)
 
-    def _match(self, detections):
 
+
+    def _match(self, detections):
         def gated_metric(tracks, dets, track_indices, detection_indices):
             features = np.array([dets[i].feature for i in detection_indices])
             targets = np.array([tracks[i].track_id for i in track_indices])
+
             cost_matrix = self.metric.distance(features, targets)
+
             cost_matrix = linear_assignment.gate_cost_matrix(
                 self.kf, cost_matrix, tracks, dets, track_indices,
                 detection_indices)
@@ -129,6 +132,18 @@ class Tracker:
         matches = matches_a + matches_b
         unmatched_tracks = list(set(unmatched_tracks_a + unmatched_tracks_b))
         return matches, unmatched_tracks, unmatched_detections
+
+    def reid_gated_metric(self, tracks, query_feature, track_indices):
+        targets = np.array([tracks[i].track_id for i in track_indices])
+
+        reid_idx = None
+        cost_matrix = self.metric.distance(query_feature, targets)
+        if cost_matrix.any():
+            feature_distance = cost_matrix[0]
+            result = np.where(feature_distance == np.amin(feature_distance))
+            reid_idx = targets[result]  
+
+        return reid_idx     
 
     def _initiate_track(self, detection):
         mean, covariance = self.kf.initiate(detection.to_xyah())

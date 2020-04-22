@@ -34,8 +34,13 @@ class VideoTracker(object):
             self.vdo = cv2.VideoCapture(args.cam)
         else:
             self.vdo = cv2.VideoCapture()
+
+        self.query_img = None
+        if args.query_img:
+            self.query_img = cv2.imread(args.query_img)
+        
         self.detector = build_detector(cfg, use_cuda=use_cuda)
-        self.deepsort = build_tracker(cfg, use_cuda=use_cuda)
+        self.deepsort = build_tracker(cfg, use_cuda=use_cuda, query_img=self.query_img)
         self.class_names = self.detector.class_names
 
 
@@ -143,6 +148,8 @@ def parse_args():
     parser.add_argument("--save_path", type=str, default="./output/")
     parser.add_argument("--cpu", dest="use_cuda", action="store_false", default=True)
     parser.add_argument("--camera", action="store", dest="cam", type=int, default="-1")
+    parser.add_argument("--query_img", type=str, default = None)
+
     return parser.parse_args()
 
 

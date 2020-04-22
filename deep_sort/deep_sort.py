@@ -12,7 +12,7 @@ __all__ = ['DeepSort']
 
 
 class DeepSort(object):
-    def __init__(self, model_path, max_dist=0.2, min_confidence=0.3, nms_max_overlap=1.0, max_iou_distance=0.7, max_age=70, n_init=3, nn_budget=100, use_cuda=True):
+    def __init__(self, model_path, max_dist=0.2, min_confidence=0.3, nms_max_overlap=1.0, max_iou_distance=0.7, max_age=70, n_init=3, nn_budget=100, use_cuda=True, query_img=None):
         self.min_confidence = min_confidence
         self.nms_max_overlap = nms_max_overlap
 
@@ -23,6 +23,16 @@ class DeepSort(object):
         metric = NearestNeighborDistanceMetric("cosine", max_cosine_distance, nn_budget)
         self.tracker = Tracker(metric, max_iou_distance=max_iou_distance, max_age=max_age, n_init=n_init)
 
+        try:    
+            if query_img.any():
+                img_array = []
+                img_array.append(query_img)
+                #query features only used when track is destroyed and person has to be reidentified again
+                self.query_features = self.extractor(img_array)
+                print("Obtained query features")
+        except:
+            print("\nNo query image given. Conducting only tracking")
+
     def update(self, bbox_xywh, confidences, ori_img):
         self.height, self.width = ori_img.shape[:2]
         # generate detections
@@ -31,6 +41,7 @@ class DeepSort(object):
         detections = [Detection(bbox_tlwh[i], conf, features[i]) for i,conf in enumerate(confidences) if conf>self.min_confidence]
 
         # run on non-maximum supression
+        # basically remove bboxes that might be duplicates or overlaps
         boxes = np.array([d.tlwh for d in detections])
         scores = np.array([d.confidence for d in detections])
         indices = non_max_suppression(boxes, self.nms_max_overlap, scores)
@@ -40,15 +51,29 @@ class DeepSort(object):
         self.tracker.predict()
         self.tracker.update(detections)
 
+        #try:
+        if self.query_features.any():
+            confirmed_tracks_indices = [i for i,track in enumerate(self.tracker.tracks) if track.is_confirmed()]
+            self.reid_idx = self.tracker.reid_gated_metric(self.tracker.tracks, self.query_features, confirmed_tracks_indices)
+        #except:
+           # print("No reid ran")
+
         # output bbox identities
         outputs = []
         for track in self.tracker.tracks:
             if not track.is_confirmed() or track.time_since_update > 1:
                 continue
+            
             box = track.to_tlwh()
             x1,y1,x2,y2 = self._tlwh_to_xyxy(box)
             track_id = track.track_id
-            outputs.append(np.array([x1,y1,x2,y2,track_id], dtype=np.int))
+            if track_id == self.reid_idx:
+                outputs.append(np.array([x1,y1,x2,y2,666], dtype=np.int))
+            else:
+                outputs.append(np.array([x1,y1,x2,y2,track_id], dtype=np.int))
+
+
+
         if len(outputs) > 0:
             outputs = np.stack(outputs,axis=0)
         return outputs
