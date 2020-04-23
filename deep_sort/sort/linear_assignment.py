@@ -57,6 +57,9 @@ def min_cost_matching(
         max_dist = max_distance
 
     print(max_dist)
+    for track in track_indices:
+        print("Target to give to gate")
+        print(tracks[track].track_id)
 
     if len(detection_indices) == 0 or len(track_indices) == 0:
         return [], track_indices, detection_indices  # Nothing to match.
@@ -64,8 +67,9 @@ def min_cost_matching(
     cost_matrix = distance_metric(
         tracks, detections, track_indices, detection_indices)
         
-    cost_matrix[cost_matrix > max_dist] = max_dist + 1e-5
     print(cost_matrix)
+
+    cost_matrix[cost_matrix > max_dist] = max_dist + 1e-5
 
     row_indices, col_indices = linear_assignment(cost_matrix)
 
@@ -140,10 +144,10 @@ def matching_cascade(
         track_indices_l = [
             k for k in track_indices
             if (tracks[k].time_since_update == 1 + level) or \
+                #TODO track not being identified for testing because max_age surpasses cascade_depth hence not being passed
                 (((1+level)==cascade_depth) and (tracks[k].no_destroy == True) and (tracks[k].time_since_update > 1+level))
         ]
-        for i in track_indices_l:
-            print(tracks[i].time_since_update)
+
         if len(track_indices_l) == 0:  # Nothing to match at this level
             continue
 
@@ -198,6 +202,12 @@ def gate_cost_matrix(
     measurements = np.asarray(
         [detections[i].to_xyah() for i in detection_indices])
     for row, track_idx in enumerate(track_indices):
+        print("Calculating feature cost for index %d" % tracks[track_idx].track_id)
+
+        if tracks[track_idx].time_since_update>10 and tracks[track_idx].no_destroy:
+            print("\n\n\nActually doing shit")
+            continue
+
         track = tracks[track_idx]
         gating_distance = kf.gating_distance(
             track.mean, track.covariance, measurements, only_position)
