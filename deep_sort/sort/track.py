@@ -81,7 +81,6 @@ class Track:
         self._max_age = max_age
 
         self.no_destroy = False
-        print("INit")
 
     def to_tlwh(self):
         """Get current position in bounding box format `(top left x, top left y,
@@ -122,10 +121,6 @@ class Track:
             The Kalman filter.
 
         """
-        print("My id")
-        print(self.track_id)
-        print("My  no_destroy")
-        print(self.no_destroy)
         self.mean, self.covariance = kf.predict(self.mean, self.covariance)
         self.age += 1
         self.time_since_update += 1

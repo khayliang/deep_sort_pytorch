@@ -75,8 +75,6 @@ class Tracker:
         
         if track_target_idx:
             self.tracks[track_target_idx].no_destroy = True
-            print("did anything change")
-            print(self.tracks[track_target_idx].no_destroy)
 
         # Run matching cascade.
         matches, unmatched_tracks, unmatched_detections = \

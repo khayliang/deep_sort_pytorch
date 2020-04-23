@@ -53,9 +53,10 @@ def min_cost_matching(
 
     if reid:
         max_dist = max_reid_distance
-
     else:
         max_dist = max_distance
+
+    print(max_dist)
 
     if len(detection_indices) == 0 or len(track_indices) == 0:
         return [], track_indices, detection_indices  # Nothing to match.
@@ -141,6 +142,8 @@ def matching_cascade(
             if (tracks[k].time_since_update == 1 + level) or \
                 (((1+level)==cascade_depth) and (tracks[k].no_destroy == True) and (tracks[k].time_since_update > 1+level))
         ]
+        for i in track_indices_l:
+            print(tracks[i].time_since_update)
         if len(track_indices_l) == 0:  # Nothing to match at this level
             continue
 
