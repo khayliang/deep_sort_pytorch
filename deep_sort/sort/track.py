@@ -122,7 +122,10 @@ class Track:
             The Kalman filter.
 
         """
-
+        print("My id")
+        print(self.track_id)
+        print("My  no_destroy")
+        print(self.no_destroy)
         self.mean, self.covariance = kf.predict(self.mean, self.covariance)
         self.age += 1
         self.time_since_update += 1

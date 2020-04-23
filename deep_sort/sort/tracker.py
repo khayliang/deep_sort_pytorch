@@ -113,7 +113,6 @@ class Tracker:
             cost_matrix = linear_assignment.gate_cost_matrix(
                 self.kf, cost_matrix, tracks, dets, track_indices,
                 detection_indices)
-            print(cost_matrix)
 
             return cost_matrix
 
@@ -127,7 +126,7 @@ class Tracker:
         matches_a, unmatched_tracks_a, unmatched_detections = \
             linear_assignment.matching_cascade(
                 gated_metric, self.metric.matching_threshold, self.max_age,
-                self.tracks, detections, confirmed_tracks)
+                self.tracks, detections, self.metric.reid_matching_threshold, track_indices=confirmed_tracks, reid=True)
 
         # Associate remaining tracks together with unconfirmed tracks using IOU.
         iou_track_candidates = unconfirmed_tracks + [
