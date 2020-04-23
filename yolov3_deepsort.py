@@ -78,7 +78,10 @@ class VideoTracker(object):
     def run(self):
         results = []
         idx_frame = 0
+        idx_tracked = None
+
         while self.vdo.grab():
+
             idx_frame += 1
             if idx_frame % self.args.frame_interval:
                 continue
@@ -99,7 +102,8 @@ class VideoTracker(object):
             cls_conf = cls_conf[mask]
 
             # do tracking
-            outputs = self.deepsort.update(bbox_xywh, cls_conf, im)
+            outputs = self.deepsort.update(bbox_xywh, cls_conf, im, tracking_target=idx_tracked)
+            idx_tracked = 0
 
             # draw boxes for visualization
             if len(outputs) > 0:
@@ -115,10 +119,15 @@ class VideoTracker(object):
 
             end = time.time()
 
+            #get user input on target to track
             if self.args.display:
                 cv2.imshow("test", ori_im)
-                cv2.waitKey(1)
+                if cv2.waitKey(1) == ord('i'):
+                    print("\nEnter target number for constant tracking")
+                    user_input = input()
 
+                    idx_tracked = int(user_input)      
+                    
             if self.args.save_path:
                 self.writer.write(ori_im)
 

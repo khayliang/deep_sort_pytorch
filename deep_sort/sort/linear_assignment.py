@@ -56,6 +56,7 @@ def min_cost_matching(
     cost_matrix = distance_metric(
         tracks, detections, track_indices, detection_indices)
     cost_matrix[cost_matrix > max_distance] = max_distance + 1e-5
+    print(cost_matrix)
 
     row_indices, col_indices = linear_assignment(cost_matrix)
 
@@ -129,7 +130,8 @@ def matching_cascade(
 
         track_indices_l = [
             k for k in track_indices
-            if tracks[k].time_since_update == 1 + level
+            if (tracks[k].time_since_update == 1 + level) or \
+                (((1+level)==cascade_depth) and (tracks[k].no_destroy == True) and (tracks[k].time_since_update > 1+level))
         ]
         if len(track_indices_l) == 0:  # Nothing to match at this level
             continue

@@ -37,7 +37,7 @@ class Tracker:
 
     """
 
-    def __init__(self, metric, max_iou_distance=0.7, max_age=70, n_init=3):
+    def __init__(self, metric, max_iou_distance=0.7, max_age=50, n_init=3):
         self.metric = metric
         self.max_iou_distance = max_iou_distance
         self.max_age = max_age
@@ -55,7 +55,7 @@ class Tracker:
         for track in self.tracks:
             track.predict(self.kf)
 
-    def update(self, detections):
+    def update(self, detections, tracking_target):
         """Perform measurement update and track management.
 
         Parameters
@@ -64,6 +64,20 @@ class Tracker:
             A list of detections at the current time step.
 
         """
+
+        #update target track with custom max age for constant tracking
+        track_target_idx = None
+        if tracking_target:
+            for i, track in enumerate(self.tracks):
+                if track.track_id == tracking_target:
+                    track_target_idx = i
+                    break
+        
+        if track_target_idx:
+            self.tracks[track_target_idx].no_destroy = True
+            print("did anything change")
+            print(self.tracks[track_target_idx].no_destroy)
+
         # Run matching cascade.
         matches, unmatched_tracks, unmatched_detections = \
             self._match(detections)
@@ -99,6 +113,7 @@ class Tracker:
             cost_matrix = linear_assignment.gate_cost_matrix(
                 self.kf, cost_matrix, tracks, dets, track_indices,
                 detection_indices)
+            print(cost_matrix)
 
             return cost_matrix
 

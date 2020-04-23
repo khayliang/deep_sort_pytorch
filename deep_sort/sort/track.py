@@ -80,6 +80,9 @@ class Track:
         self._n_init = n_init
         self._max_age = max_age
 
+        self.no_destroy = False
+        print("INit")
+
     def to_tlwh(self):
         """Get current position in bounding box format `(top left x, top left y,
         width, height)`.
@@ -119,6 +122,7 @@ class Track:
             The Kalman filter.
 
         """
+
         self.mean, self.covariance = kf.predict(self.mean, self.covariance)
         self.age += 1
         self.time_since_update += 1
@@ -135,6 +139,7 @@ class Track:
             The associated detection.
 
         """
+
         self.mean, self.covariance = kf.update(
             self.mean, self.covariance, detection.to_xyah())
         self.features.append(detection.feature)
@@ -149,7 +154,7 @@ class Track:
         """
         if self.state == TrackState.Tentative:
             self.state = TrackState.Deleted
-        elif self.time_since_update > self._max_age:
+        elif self.time_since_update > self._max_age and self.no_destroy == False:
             self.state = TrackState.Deleted
 
     def is_tentative(self):
