@@ -170,4 +170,6 @@ class Track:
 
     def is_deleted(self):
         """Returns True if this track is dead and should be deleted."""
+        if(self.track_id == 1 and self.state == TrackState.Deleted):
+            print("\n\n\n\n\nWTF\n\n\n\n\n")
         return self.state == TrackState.Deleted

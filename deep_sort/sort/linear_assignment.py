@@ -58,8 +58,8 @@ def min_cost_matching(
 
     print(max_dist)
     for track in track_indices:
-        print("Target to give to gate")
-        print(tracks[track].track_id)
+        """print("Target to give to gate")
+        print(tracks[track].track_id)"""
 
     if len(detection_indices) == 0 or len(track_indices) == 0:
         return [], track_indices, detection_indices  # Nothing to match.
@@ -137,19 +137,41 @@ def matching_cascade(
 
     unmatched_detections = detection_indices
     matches = []
+
+    print("My track indices")
+    for i in track_indices:
+        print(tracks[i].track_id)
+        print(tracks[i].no_destroy)
+
     for level in range(cascade_depth):
         if len(unmatched_detections) == 0:  # No detections left
             break
+        
+        track_indices_l = []
+        for k in track_indices:
+            if (tracks[k].time_since_update == 1 + level):
+                track_indices_l.append(k)
+            
+            if 1+level==cascade_depth:
+                if(tracks[k].no_destroy == True):
+                    track_indices_l.append(k)
 
-        track_indices_l = [
+
+
+
+        """track_indices_l = [
             k for k in track_indices
             if (tracks[k].time_since_update == 1 + level) or \
                 #TODO track not being identified for testing because max_age surpasses cascade_depth hence not being passed
                 (((1+level)==cascade_depth) and (tracks[k].no_destroy == True) and (tracks[k].time_since_update > 1+level))
-        ]
+        ]"""
 
         if len(track_indices_l) == 0:  # Nothing to match at this level
             continue
+
+        print("My track indices l")
+        for i in track_indices_l:
+            print(tracks[i].track_id)
 
         matches_l, _, unmatched_detections = \
             min_cost_matching(
@@ -204,7 +226,7 @@ def gate_cost_matrix(
     for row, track_idx in enumerate(track_indices):
         print("Calculating feature cost for index %d" % tracks[track_idx].track_id)
 
-        if tracks[track_idx].time_since_update>10 and tracks[track_idx].no_destroy:
+        if tracks[track_idx].time_since_update>50 and tracks[track_idx].no_destroy:
             print("\n\n\nActually doing shit")
             continue
 

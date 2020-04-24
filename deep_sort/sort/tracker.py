@@ -66,16 +66,12 @@ class Tracker:
         """
 
         #update target track with custom max age for constant tracking
-        track_target_idx = None
         if tracking_target:
             for i, track in enumerate(self.tracks):
-                if track.track_id == tracking_target:
-                    track_target_idx = i
+                if track.track_id == int(tracking_target):
+                    self.tracks[i].no_destroy = True
                     break
-        
-        if track_target_idx:
-            self.tracks[track_target_idx].no_destroy = True
-
+                
         # Run matching cascade.
         matches, unmatched_tracks, unmatched_detections = \
             self._match(detections)
@@ -107,8 +103,6 @@ class Tracker:
         def gated_metric(tracks, dets, track_indices, detection_indices):
             features = np.array([dets[i].feature for i in detection_indices])
             targets = np.array([tracks[i].track_id for i in track_indices])
-            print("Target to be tested")
-            print(targets)
             cost_matrix = self.metric.distance(features, targets)
             cost_matrix = linear_assignment.gate_cost_matrix(
                 self.kf, cost_matrix, tracks, dets, track_indices,
@@ -121,7 +115,7 @@ class Tracker:
             i for i, t in enumerate(self.tracks) if t.is_confirmed()]
         unconfirmed_tracks = [
             i for i, t in enumerate(self.tracks) if not t.is_confirmed()]
-            
+
         # Associate confirmed tracks using appearance features.
         matches_a, unmatched_tracks_a, unmatched_detections = \
             linear_assignment.matching_cascade(
