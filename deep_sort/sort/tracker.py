@@ -37,7 +37,7 @@ class Tracker:
 
     """
 
-    def __init__(self, metric, max_iou_distance=0.7, max_age=70, n_init=3):
+    def __init__(self, metric, max_iou_distance=0.7, max_age=50, n_init=3):
         self.metric = metric
         self.max_iou_distance = max_iou_distance
         self.max_age = max_age
@@ -55,7 +55,7 @@ class Tracker:
         for track in self.tracks:
             track.predict(self.kf)
 
-    def update(self, detections):
+    def update(self, detections, tracking_target):
         """Perform measurement update and track management.
 
         Parameters
@@ -64,6 +64,14 @@ class Tracker:
             A list of detections at the current time step.
 
         """
+
+        #update target track with custom max age for constant tracking
+        if tracking_target:
+            for i, track in enumerate(self.tracks):
+                if track.track_id == int(tracking_target):
+                    self.tracks[i].no_destroy = True
+                    break
+                
         # Run matching cascade.
         matches, unmatched_tracks, unmatched_detections = \
             self._match(detections)
@@ -112,7 +120,7 @@ class Tracker:
         matches_a, unmatched_tracks_a, unmatched_detections = \
             linear_assignment.matching_cascade(
                 gated_metric, self.metric.matching_threshold, self.max_age,
-                self.tracks, detections, confirmed_tracks)
+                self.tracks, detections, self.metric.reid_matching_threshold, track_indices=confirmed_tracks, reid=True)
 
         # Associate remaining tracks together with unconfirmed tracks using IOU.
         iou_track_candidates = unconfirmed_tracks + [

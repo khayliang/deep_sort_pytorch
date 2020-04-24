@@ -80,6 +80,8 @@ class Track:
         self._n_init = n_init
         self._max_age = max_age
 
+        self.no_destroy = False
+
     def to_tlwh(self):
         """Get current position in bounding box format `(top left x, top left y,
         width, height)`.
@@ -119,7 +121,11 @@ class Track:
             The Kalman filter.
 
         """
-        self.mean, self.covariance = kf.predict(self.mean, self.covariance)
+        if self.time_since_update < self._max_age and self.no_destroy == False:
+            self.mean, self.covariance = kf.predict(self.mean, self.covariance)
+        elif self.time_since_update < 10 and self.no_destroy == True:
+            self.mean, self.covariance = kf.predict(self.mean, self.covariance)
+
         self.age += 1
         self.time_since_update += 1
 
@@ -135,6 +141,7 @@ class Track:
             The associated detection.
 
         """
+
         self.mean, self.covariance = kf.update(
             self.mean, self.covariance, detection.to_xyah())
         self.features.append(detection.feature)
@@ -149,7 +156,7 @@ class Track:
         """
         if self.state == TrackState.Tentative:
             self.state = TrackState.Deleted
-        elif self.time_since_update > self._max_age:
+        elif self.time_since_update > self._max_age and self.no_destroy == False:
             self.state = TrackState.Deleted
 
     def is_tentative(self):
@@ -163,4 +170,6 @@ class Track:
 
     def is_deleted(self):
         """Returns True if this track is dead and should be deleted."""
+        if(self.track_id == 1 and self.state == TrackState.Deleted):
+            print("\n\n\n\n\nWTF\n\n\n\n\n")
         return self.state == TrackState.Deleted

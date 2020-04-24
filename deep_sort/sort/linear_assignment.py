@@ -11,7 +11,7 @@ INFTY_COST = 1e+5
 
 def min_cost_matching(
         distance_metric, max_distance, tracks, detections, track_indices=None,
-        detection_indices=None):
+        detection_indices=None, max_reid_distance=None, reid=None):
     """Solve linear assignment problem.
 
     Parameters
@@ -50,12 +50,19 @@ def min_cost_matching(
     if detection_indices is None:
         detection_indices = np.arange(len(detections))
 
+
+    if reid:
+        max_dist = max_reid_distance
+    else:
+        max_dist = max_distance
+
     if len(detection_indices) == 0 or len(track_indices) == 0:
         return [], track_indices, detection_indices  # Nothing to match.
 
     cost_matrix = distance_metric(
         tracks, detections, track_indices, detection_indices)
-    cost_matrix[cost_matrix > max_distance] = max_distance + 1e-5
+        
+    cost_matrix[cost_matrix > max_dist] = max_dist + 1e-5
 
     row_indices, col_indices = linear_assignment(cost_matrix)
 
@@ -69,7 +76,7 @@ def min_cost_matching(
     for row, col in zip(row_indices, col_indices):
         track_idx = track_indices[row]
         detection_idx = detection_indices[col]
-        if cost_matrix[row, col] > max_distance:
+        if cost_matrix[row, col] > max_dist:
             unmatched_tracks.append(track_idx)
             unmatched_detections.append(detection_idx)
         else:
@@ -78,8 +85,8 @@ def min_cost_matching(
 
 
 def matching_cascade(
-        distance_metric, max_distance, cascade_depth, tracks, detections,
-        track_indices=None, detection_indices=None):
+        distance_metric, max_distance, cascade_depth, tracks, detections, max_reid_distance=None,
+        track_indices=None, detection_indices=None, reid=False):
     """Run matching cascade.
 
     Parameters
@@ -123,21 +130,37 @@ def matching_cascade(
 
     unmatched_detections = detection_indices
     matches = []
+
     for level in range(cascade_depth):
         if len(unmatched_detections) == 0:  # No detections left
             break
+        
+        track_indices_l = []
+        for k in track_indices:
+            if (tracks[k].time_since_update == 1 + level):
+                track_indices_l.append(k)
+            
+            if 1+level==cascade_depth:
+                if(tracks[k].no_destroy == True):
+                    track_indices_l.append(k)
 
-        track_indices_l = [
+
+
+
+        """track_indices_l = [
             k for k in track_indices
-            if tracks[k].time_since_update == 1 + level
-        ]
+            if (tracks[k].time_since_update == 1 + level) or \
+                #TODO track not being identified for testing because max_age surpasses cascade_depth hence not being passed
+                (((1+level)==cascade_depth) and (tracks[k].no_destroy == True) and (tracks[k].time_since_update > 1+level))
+        ]"""
+
         if len(track_indices_l) == 0:  # Nothing to match at this level
             continue
 
         matches_l, _, unmatched_detections = \
             min_cost_matching(
-                distance_metric, max_distance, tracks, detections,
-                track_indices_l, unmatched_detections)
+                distance_metric, max_distance, tracks, detections, max_reid_distance=max_reid_distance, reid=reid,
+                track_indices=track_indices_l, detection_indices=unmatched_detections)
         matches += matches_l
     unmatched_tracks = list(set(track_indices) - set(k for k, _ in matches))
     return matches, unmatched_tracks, unmatched_detections
@@ -185,6 +208,10 @@ def gate_cost_matrix(
     measurements = np.asarray(
         [detections[i].to_xyah() for i in detection_indices])
     for row, track_idx in enumerate(track_indices):
+
+        if tracks[track_idx].time_since_update>50 and tracks[track_idx].no_destroy:
+            continue
+
         track = tracks[track_idx]
         gating_distance = kf.gating_distance(
             track.mean, track.covariance, measurements, only_position)
