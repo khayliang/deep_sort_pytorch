@@ -154,6 +154,8 @@ class NearestNeighborDistanceMetric(object):
             self.samples.setdefault(target, []).append(feature)
             if self.budget is not None:
                 self.samples[target] = self.samples[target][-self.budget:]
+                array = np.array(self.samples[target])
+
         self.samples = {k: self.samples[k] for k in active_targets}
 
     def distance(self, features, targets):
