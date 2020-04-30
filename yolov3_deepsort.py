@@ -86,6 +86,9 @@ class VideoTracker(object):
             if idx_frame % self.args.frame_interval:
                 continue
 
+            if idx_frame < args.load_from:
+                continue
+
             start = time.time()
             _, ori_im = self.vdo.retrieve()
             im = cv2.cvtColor(ori_im, cv2.COLOR_BGR2RGB)
@@ -119,6 +122,20 @@ class VideoTracker(object):
 
             end = time.time()
 
+            #draw frame count
+            font                   = cv2.FONT_HERSHEY_SIMPLEX
+            bottomLeftCornerOfText = (10,500)
+            fontScale              = 1
+            fontColor              = (255,255,255)
+            lineType               = 2
+            frame_count = ("Frame no: %d" % idx_frame)
+            cv2.putText(ori_im,frame_count, 
+                bottomLeftCornerOfText, 
+                font, 
+                fontScale,
+                fontColor,
+                lineType)
+
             #get user input on target to track
             if self.args.display:
                 cv2.imshow("test", ori_im)
@@ -135,8 +152,8 @@ class VideoTracker(object):
             write_results(self.save_results_path, results, 'mot')
 
             # logging
-            self.logger.info("time: {:.03f}s, fps: {:.03f}, detection numbers: {}, tracking numbers: {}" \
-                            .format(end-start, 1/(end-start), bbox_xywh.shape[0], len(outputs)))
+            self.logger.info("frame: {}, time: {:.03f}s, fps: {:.03f}, detection numbers: {}, tracking numbers: {}" \
+                            .format(idx_frame, end-start, 1/(end-start), bbox_xywh.shape[0], len(outputs)))
 
 
 def parse_args():
@@ -152,6 +169,8 @@ def parse_args():
     parser.add_argument("--save_path", type=str, default="./output/")
     parser.add_argument("--cpu", dest="use_cuda", action="store_false", default=True)
     parser.add_argument("--camera", action="store", dest="cam", type=int, default="-1")
+    parser.add_argument("--load_from", type=int, default=1)
+
     return parser.parse_args()
 
 
