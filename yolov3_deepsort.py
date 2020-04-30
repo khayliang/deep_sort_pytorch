@@ -105,8 +105,12 @@ class VideoTracker(object):
             cls_conf = cls_conf[mask]
 
             # do tracking
-            outputs = self.deepsort.update(bbox_xywh, cls_conf, im, tracking_target=idx_tracked)
-            idx_tracked = 0
+            if idx_tracked:
+                outputs = self.deepsort.update(bbox_xywh, cls_conf, im, tracking_target=idx_tracked)
+            else:
+                outputs = self.deepsort.update(bbox_xywh, cls_conf, im)
+
+            #idx_tracked = 0
 
             # draw boxes for visualization
             if len(outputs) > 0:
@@ -130,6 +134,19 @@ class VideoTracker(object):
             lineType               = 2
             frame_count = ("Frame no: %d" % idx_frame)
             cv2.putText(ori_im,frame_count, 
+                bottomLeftCornerOfText, 
+                font, 
+                fontScale,
+                fontColor,
+                lineType)
+            #draw tracking number
+            if idx_tracked:
+                tracking_str = ("Tracking: %d" % idx_tracked)
+            else:
+                tracking_str = ("Tracking: None")
+
+            bottomLeftCornerOfText = (10,550)
+            cv2.putText(ori_im,tracking_str, 
                 bottomLeftCornerOfText, 
                 font, 
                 fontScale,
