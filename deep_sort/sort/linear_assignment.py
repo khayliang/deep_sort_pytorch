@@ -35,6 +35,14 @@ def min_cost_matching(
     detection_indices : List[int]
         List of detection indices that maps columns in `cost_matrix` to
         detections in `detections` (see description above).
+    max_reid_distance: int
+        This function is used for IOU and appearance matching. A separation between IOU 
+        threshold and reid threshold is necessary. this variable is used for reid threshold.
+    reid: Bool
+        This function is used for matching using IOU and matching using appearance
+        features. If reid: True, function is used for appearance matching. If reid: False,
+        function is used for IOU matching
+
 
     Returns
     -------
