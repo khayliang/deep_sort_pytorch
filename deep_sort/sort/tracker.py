@@ -47,6 +47,8 @@ class Tracker:
         self.tracks = []
         self._next_id = 1
 
+        self.tracking_id = None
+
     def predict(self):
         """Propagate track state distributions one time step forward.
 
@@ -67,6 +69,7 @@ class Tracker:
 
         #update target track with custom max age for constant tracking
         if tracking_target:
+            self.tracking_id = tracking_target
             for i, track in enumerate(self.tracks):
                 if track.track_id == int(tracking_target):
                     self.tracks[i].no_destroy = True
@@ -78,8 +81,15 @@ class Tracker:
 
         # Update track set.
         for track_idx, detection_idx in matches:
-            self.tracks[track_idx].update(
-                self.kf, detections[detection_idx])
+            if self.tracking_id:
+                if self.tracks[track_idx].no_destroy or self.tracks[track_idx].age < self.max_age:
+                    self.tracks[track_idx].update(
+                        self.kf, detections[detection_idx])
+                else:
+                    self.tracks[track_idx].mark_missed()
+            else:
+                self.tracks[track_idx].update(
+                    self.kf, detections[detection_idx])
         for track_idx in unmatched_tracks:
             self.tracks[track_idx].mark_missed()
         for detection_idx in unmatched_detections:
