@@ -62,7 +62,7 @@ def min_cost_matching(
     if reid:
         max_dist = max_reid_distance
     else:
-        max_dist = 0.2
+        max_dist = max_dist
 
     if len(detection_indices) == 0 or len(track_indices) == 0:
         return [], track_indices, detection_indices  # Nothing to match.
