@@ -4,7 +4,7 @@ import logging
 import argparse
 from pathlib import Path
 
-from utils.log import logger
+from utils.log import get_logger
 from yolov3_deepsort import VideoTracker
 from utils.parser import get_config
 
@@ -16,6 +16,7 @@ def mkdir_if_missing(dir):
     os.makedirs(dir, exist_ok=True)
 
 def main(data_root='', seqs=('',), args=""):
+    logger = get_logger()
     logger.setLevel(logging.INFO)
     data_type = 'mot'
     result_root = os.path.join(Path(data_root), "mot_results")
