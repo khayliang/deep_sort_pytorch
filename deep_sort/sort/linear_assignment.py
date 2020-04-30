@@ -142,16 +142,6 @@ def matching_cascade(
                 if(tracks[k].no_destroy == True):
                     track_indices_l.append(k)
 
-
-
-
-        """track_indices_l = [
-            k for k in track_indices
-            if (tracks[k].time_since_update == 1 + level) or \
-                #TODO track not being identified for testing because max_age surpasses cascade_depth hence not being passed
-                (((1+level)==cascade_depth) and (tracks[k].no_destroy == True) and (tracks[k].time_since_update > 1+level))
-        ]"""
-
         if len(track_indices_l) == 0:  # Nothing to match at this level
             continue
 
