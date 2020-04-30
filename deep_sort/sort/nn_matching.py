@@ -178,5 +178,6 @@ class NearestNeighborDistanceMetric(object):
         """
         cost_matrix = np.zeros((len(targets), len(features)))
         for i, target in enumerate(targets):
+            print(len(self.samples[target]))
             cost_matrix[i, :] = self._metric(self.samples[target], features)
         return cost_matrix

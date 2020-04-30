@@ -422,12 +422,12 @@ class OSNet(nn.Module):
 
     def forward(self, x, return_featuremaps=False):
         x = self.featuremaps(x)
-        if return_featuremaps:
-            return x
         v = self.global_avgpool(x)
         v = v.view(v.size(0), -1)
         if self.fc is not None:
             v = self.fc(v)
+        if return_featuremaps:
+            return v
         if not self.training:
             return v
         y = self.classifier(v)
@@ -449,7 +449,7 @@ def init_pretrained_weights(model, key=''):
     import gdown
     from collections import OrderedDict
 
-    def _get_torch_home():
+    """def _get_torch_home():
         ENV_TORCH_HOME = 'TORCH_HOME'
         ENV_XDG_CACHE_HOME = 'XDG_CACHE_HOME'
         DEFAULT_CACHE_DIR = '~/.cache'
@@ -478,10 +478,16 @@ def init_pretrained_weights(model, key=''):
     cached_file = os.path.join(model_dir, filename)
 
     if not os.path.exists(cached_file):
-        gdown.download(pretrained_urls[key], cached_file, quiet=False)
+        gdown.download(pretrained_urls[key], cached_file, quiet=False)"""
 
-    state_dict = torch.load(cached_file)
+    state_dict = torch.load("./deep_sort/deep/checkpoint/model.pth.tar-100")
+    #print(state_dict)
+    state_dict = state_dict["state_dict"]
+    for item in state_dict.items():
+        print(item[0])
     model_dict = model.state_dict()
+    print(len(model_dict))
+
     new_state_dict = OrderedDict()
     matched_layers, discarded_layers = [], []
 
@@ -490,6 +496,7 @@ def init_pretrained_weights(model, key=''):
             k = k[7:] # discard module.
 
         if k in model_dict and model_dict[k].size() == v.size():
+            print("adding")
             new_state_dict[k] = v
             matched_layers.append(k)
         else:
@@ -502,12 +509,11 @@ def init_pretrained_weights(model, key=''):
         warnings.warn(
             'The pretrained weights from "{}" cannot be loaded, '
             'please check the key names manually '
-            '(** ignored and continue **)'.format(cached_file)
+            '(** ignored and continue **)'
         )
     else:
         print(
-            'Successfully loaded imagenet pretrained weights from "{}"'.
-            format(cached_file)
+            'Successfully loaded imagenet pretrained weights from "{}"'
         )
         if len(discarded_layers) > 0:
             print(
@@ -515,6 +521,7 @@ def init_pretrained_weights(model, key=''):
                 'due to unmatched keys or layer size: {}'.
                 format(discarded_layers)
             )
+
 
 
 ##########
@@ -537,4 +544,5 @@ def osnet_ain_x1_0(
     )
     if pretrained:
         init_pretrained_weights(model, key='osnet_ain_x1_0')
+    model.eval()
     return model

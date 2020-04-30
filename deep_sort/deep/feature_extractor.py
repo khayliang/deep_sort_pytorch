@@ -13,10 +13,11 @@ class Extractor(object):
         self.osnet = osnet_ain_x1_0()
         self.device = "cuda" if torch.cuda.is_available() and use_cuda else "cpu"
         state_dict = torch.load(model_path, map_location=lambda storage, loc: storage)['net_dict']
-        self.net.load_state_dict(state_dict)
+        #self.net.load_state_dict(state_dict)
         logger = logging.getLogger("root.tracker")
         logger.info("Loading weights from {}... Done!".format(model_path))
-        self.net.to(self.device)
+        self.osnet.to(self.device)
+        #self.net.to(self.device)
         self.size = (128, 256)
         self.norm = transforms.Compose([
             transforms.ToTensor(),
@@ -44,7 +45,7 @@ class Extractor(object):
     def __call__(self, im_crops):
         im_batch = self._preprocess(im_crops)
         with torch.no_grad():
-            #im_batch = im_batch.to(self.device)
+            im_batch = im_batch.to(self.device)
             #features = self.net(im_batch)
             features = self.osnet(im_batch, return_featuremaps=True)
             features = torch.flatten(features, start_dim=1)
