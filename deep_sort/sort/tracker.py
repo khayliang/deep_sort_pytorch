@@ -90,7 +90,7 @@ class Tracker:
             else:
                 self.tracks[track_idx].update(
                     self.kf, detections[detection_idx])
-                    
+
         for track_idx in unmatched_tracks:
             self.tracks[track_idx].mark_missed()
         for detection_idx in unmatched_detections:
@@ -133,7 +133,7 @@ class Tracker:
         matches_a, unmatched_tracks_a, unmatched_detections = \
             linear_assignment.matching_cascade(
                 gated_metric, self.metric.matching_threshold, self.max_age,
-                self.tracks, detections, self.metric.reid_matching_threshold, track_indices=confirmed_tracks, reid=True)
+                self.tracks, detections, self.metric.reid_matching_threshold, track_indices=confirmed_tracks)
 
         # Associate remaining tracks together with unconfirmed tracks using IOU.
         iou_track_candidates = unconfirmed_tracks + [

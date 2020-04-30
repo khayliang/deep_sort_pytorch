@@ -120,7 +120,7 @@ class NearestNeighborDistanceMetric(object):
 
     """
 
-    def __init__(self, metric, matching_threshold, reid_matching_threshold, budget=None):
+    def __init__(self, metric, matching_threshold, budget=None):
 
 
         if metric == "euclidean":
@@ -131,8 +131,6 @@ class NearestNeighborDistanceMetric(object):
             raise ValueError(
                 "Invalid metric; must be either 'euclidean' or 'cosine'")
         self.matching_threshold = matching_threshold
-
-        self.reid_matching_threshold = reid_matching_threshold
 
         self.budget = budget
         self.samples = {}

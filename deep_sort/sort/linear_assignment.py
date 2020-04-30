@@ -11,7 +11,7 @@ INFTY_COST = 1e+5
 
 def min_cost_matching(
         distance_metric, max_distance, tracks, detections, track_indices=None,
-        detection_indices=None, max_reid_distance=None, reid=None):
+        detection_indices=None):
     """Solve linear assignment problem.
 
     Parameters
@@ -35,14 +35,6 @@ def min_cost_matching(
     detection_indices : List[int]
         List of detection indices that maps columns in `cost_matrix` to
         detections in `detections` (see description above).
-    max_reid_distance: int
-        This function is used for IOU and appearance matching. A separation between IOU 
-        threshold and reid threshold is necessary. this variable is used for reid threshold.
-    reid: Bool
-        This function is used for matching using IOU and matching using appearance
-        features. If reid: True, function is used for appearance matching. If reid: False,
-        function is used for IOU matching
-
 
     Returns
     -------
@@ -58,11 +50,9 @@ def min_cost_matching(
     if detection_indices is None:
         detection_indices = np.arange(len(detections))
 
+    max_dist = max_distance
 
-    if reid:
-        max_dist = max_reid_distance
-    else:
-        max_dist = max_distance
+    print(max_dist)
 
     if len(detection_indices) == 0 or len(track_indices) == 0:
         return [], track_indices, detection_indices  # Nothing to match.
