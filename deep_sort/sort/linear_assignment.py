@@ -83,8 +83,8 @@ def min_cost_matching(
 
 
 def matching_cascade(
-        distance_metric, max_distance, cascade_depth, tracks, detections, max_reid_distance=None,
-        track_indices=None, detection_indices=None, reid=False):
+        distance_metric, max_distance, cascade_depth, tracks, detections,
+        track_indices=None, detection_indices=None):
     """Run matching cascade.
 
     Parameters
@@ -157,8 +157,8 @@ def matching_cascade(
 
         matches_l, _, unmatched_detections = \
             min_cost_matching(
-                distance_metric, max_distance, tracks, detections, max_reid_distance=max_reid_distance, reid=reid,
-                track_indices=track_indices_l, detection_indices=unmatched_detections)
+                distance_metric, max_distance, tracks, detections, track_indices=track_indices_l, 
+                detection_indices=unmatched_detections)
         matches += matches_l
     unmatched_tracks = list(set(track_indices) - set(k for k, _ in matches))
     return matches, unmatched_tracks, unmatched_detections

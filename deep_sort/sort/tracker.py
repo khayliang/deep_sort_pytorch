@@ -133,7 +133,7 @@ class Tracker:
         matches_a, unmatched_tracks_a, unmatched_detections = \
             linear_assignment.matching_cascade(
                 gated_metric, self.metric.matching_threshold, self.max_age,
-                self.tracks, detections, self.metric.reid_matching_threshold, track_indices=confirmed_tracks)
+                self.tracks, detections, track_indices=confirmed_tracks)
 
         # Associate remaining tracks together with unconfirmed tracks using IOU.
         iou_track_candidates = unconfirmed_tracks + [
